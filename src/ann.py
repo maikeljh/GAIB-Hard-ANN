@@ -122,36 +122,57 @@ class Sequential:
             # Update weights using gradients computed and scales them with learning rate
             layer.update_weights(learning_rate)
 
-    def fit(self, X, y, epochs, learning_rate):
+    def fit(self, X, y, epochs=100, learning_rate=0.01, batch_size=32):
         # Train ANN
         for epoch in range(epochs):
             # Define total loss
             total_loss = 0
 
-            # Iterate all train data
-            for i in range(len(X)):
-                # Get features
-                inputs = X[i].reshape(-1, 1)
+            # Define size of data
+            num_samples = len(X)
 
-                # Get target
-                target = y[i]
-                
-                # Forward propagation
-                prediction = self.forward(inputs)
-                
-                # Compute loss
-                loss = mean_square_error(target, prediction)
-                total_loss += loss
-                
-                # Backward propagation
-                d_output = -(target - prediction)
-                self.backward(d_output)
-                
-                # Weight update using SGD
-                self.update_weights(learning_rate)
-                
+            # Shuffle the data for each epoch
+            indices = np.arange(num_samples)
+            np.random.shuffle(indices)
+
+            for batch_start in range(0, num_samples, batch_size):
+                # Create a batch
+                batch_indices = indices[batch_start: batch_start + batch_size]
+                X_batch = X[batch_indices]
+                y_batch = y[batch_indices]
+
+                # Forward and backward propagation for the current batch
+                # Define batch loss
+                batch_loss = 0
+
+                # Iterate for all batch data
+                for i in range(len(X_batch)):
+                    # Define inputs
+                    inputs = X_batch[i].reshape(-1, 1)
+
+                    # Define target
+                    target = y_batch[i]
+
+                    # Forward propagation
+                    prediction = self.forward(inputs)
+
+                    # Compute loss
+                    loss = mean_square_error(target, prediction)
+                    batch_loss += loss
+
+                    # Backward propagation
+                    d_output = -(target - prediction)
+                    self.backward(d_output)
+
+                    # Weight update using SGD
+                    self.update_weights(learning_rate)
+
+                # Calculate average loss for the batch
+                average_loss = batch_loss / len(X_batch)
+                total_loss += average_loss
+
             # Calculate average loss for the epoch
-            average_loss = total_loss / len(X)
+            average_loss = total_loss / (num_samples // batch_size)
             print(f"Epoch {epoch + 1}/{epochs}, Loss: {average_loss:.4f}")
     
     def predict(self, X):

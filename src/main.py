@@ -9,8 +9,15 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report
 from imblearn.over_sampling import SMOTE
 
+# Input
+data = input("Masukkan data: ")
+learning_rate = float(input("Masukkan learning rate: "))
+batch_size = int(input("Masukkan batch size: "))
+epochs = int(input("Masukkan epochs: "))
+print()
+
 # Load data
-df = pd.read_csv('breast_cancer_data.csv')
+df = pd.read_csv(data)
 
 # Handling missing data for numeric columns with mean imputation
 numeric_columns = df.select_dtypes(include=[np.number]).columns
@@ -54,13 +61,16 @@ scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
+# Convert y_train to a numpy array
+y_train = np.array(y_train)
+
 # Create the model
 model = Sequential()
 model.add(Dense(input_size=X_train.shape[1], output_size=2, activation_function=relu))
 model.add(Dense(input_size=2, output_size=1, activation_function=sigmoid))
 
 # Train the model
-model.fit(X_train, y_train, epochs=100, learning_rate=0.1)
+model.fit(X_train, y_train, epochs, learning_rate, batch_size)
 
 # Test the model
 predictions = model.predict(X_test)
